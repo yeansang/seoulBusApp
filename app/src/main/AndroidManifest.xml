@@ -43,7 +43,9 @@
         <activity
             android:name=".MapPopup"
             android:theme="@android:style/Theme.Holo.Dialog" />
-        <activity android:name=".BusLinePop"></activity>
+        <activity
+            android:name=".BusLinePop"
+            android:theme="@android:style/Theme.Holo.Dialog"></activity>
     </application>
 
 </manifest>

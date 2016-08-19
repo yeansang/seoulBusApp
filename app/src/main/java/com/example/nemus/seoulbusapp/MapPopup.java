@@ -12,7 +12,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class MapPopup extends Activity {
     ListView mListView;
@@ -55,6 +58,18 @@ public class MapPopup extends Activity {
                         Log.d("mappopup","popup 3");
                         intent.putExtra("ClickItem",i);
                         setResult(RESULT_OK,intent);
+                        GetBusInfo gi = new GetBusInfo();
+                        gi.setData(GetBusInfo.DATA_NEARBUSSTOP,intent.getDoubleExtra("y",0),intent.getDoubleExtra("x",0),300,null);
+                        gi.execute();
+                        JSONArray temp = null;
+                        try {
+                            temp = gi.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        intent.putExtra("busStopData",temp.toString());
                         main.finish();
                         break;
                     default:
