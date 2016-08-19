@@ -84,11 +84,15 @@ public class BusStopInfo extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("data","catch");
+        //Log.d("data",data.getStringExtra("lineData"));
+        Log.d("code",resultCode+"");
         if(resultCode == RESULT_OK){
             switch (requestCode){
                 case mainActivity.BUSLINEPOP:
                     Log.d("data",data.getStringExtra("lineData"));
                     firstInfo.putExtras(data);
+                    setResult(RESULT_OK,firstInfo);
                     this.finish();
             }
         }

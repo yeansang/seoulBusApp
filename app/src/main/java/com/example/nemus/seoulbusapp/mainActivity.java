@@ -46,6 +46,8 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Intent intent;
 
+    JSONArray drawLine=null;
+
     private double startPoint[] = new double[]{37.558345, 126.994583};
 
     @Override
@@ -139,6 +141,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        /*if(drawLine!=null){
+            Log.d("onMapReady",drawLine.toString());
+            drawLine(drawLine);
+        }*/
+
     }
 
     @Override
@@ -172,10 +179,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     }
                     break;
+                case BUSSTOPINFO:
                 case BUSLINEPOP:
                     try {
-                        JSONArray ja = new JSONArray(data.getStringExtra("lineData"));
-                        drawLine(ja);
+                        drawLine = new JSONArray(data.getStringExtra("lineData"));
+                        drawLine(drawLine);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -193,13 +201,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     public void drawLine(JSONArray lineList){
         try {
             PolylineOptions options = new PolylineOptions().color(Color.CYAN);
-            lineList = new JSONArray();
             for(int i=0;i<lineList.length();i++){
                 JSONObject son = lineList.getJSONObject(i);
                 Log.d("root",son.getDouble("y")+"/"+son.getDouble("x"));
                 options.add(new LatLng(son.getDouble("y"),son.getDouble("x")));
             }
-            options.color(Color.DKGRAY);
             Polyline polyline = mMap.addPolyline(options);
         } catch (JSONException e) {
             e.printStackTrace();

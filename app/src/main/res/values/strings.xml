@@ -4,5 +4,7 @@
     <string name="start_point">출발지로 지정</string>
     <string name="end_point">도착지로 지정</string>
     <string name="near_busstop">근처 정류장</string>
-    <string name="buslinepopup">근처 정류장</string>
+    <string name="buslinepopup">버스 노선</string>
+    <string name="buslineonmap">버스노선 표시</string>
+    <string name="cancel">취소</string>
 </resources>
