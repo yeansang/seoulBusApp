@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -64,7 +63,7 @@ public class BusStopInfo extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        BusListAdapter adapter = new BusListAdapter(getApplicationContext(),android.R.layout.simple_expandable_list_item_1,businfo);
+        CustomAdapter adapter = new CustomAdapter(getApplicationContext(),android.R.layout.simple_expandable_list_item_1,businfo);
         mBusInfo.setAdapter(adapter);
         mBusInfo.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -72,6 +71,8 @@ public class BusStopInfo extends AppCompatActivity {
                 Intent callPop = new Intent(main,BusLinePop.class);
                 try {
                     callPop.putExtra("busId",businfo.get(i).getString("busRouteId"));
+                    callPop.putExtra("busnum",businfo.get(i).getString("rtNm"));
+                    callPop.putExtra("businfo",businfo.get(i).getString("sectNm"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

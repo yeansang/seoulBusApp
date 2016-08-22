@@ -16,11 +16,11 @@ import java.util.ArrayList;
 /**
  * Created by nemus on 2016-08-19.
  */
-public class BusListAdapter extends ArrayAdapter<JSONObject> {
+public class CustomAdapter extends ArrayAdapter<JSONObject> {
 
     private ArrayList<JSONObject> item;
 
-    public BusListAdapter(Context context, int resource, ArrayList<JSONObject> objects) {
+    public CustomAdapter(Context context, int resource, ArrayList<JSONObject> objects) {
         super(context, resource, objects);
         this.item = objects;
     }

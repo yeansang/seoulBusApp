@@ -30,12 +30,16 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+
+import java.util.concurrent.ExecutionException;
 
 public class mainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     public final static int MAPPOPUP = 0;
     public final static int BUSSTOPINFO = 1;
     public final static int BUSLINEPOP = 2;
+    public final static int PATHSEARCH = 3;
 
     private GoogleMap mMap;
     private LocationManager mLocationManager;
@@ -46,7 +50,16 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Intent intent;
 
+    double maxX=0;
+    double minX=1000;
+    double maxY=0;
+    double minY=1000;
+
     JSONArray drawLine=null;
+    Polyline polyline=null;
+
+    Marker[] markers = new Marker[30];
+    int rcount=0;
 
     private double startPoint[] = new double[]{37.558345, 126.994583};
 
@@ -74,6 +87,8 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
     }
 
 
@@ -118,24 +133,40 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                 mapData.putExtra("y",latLng.latitude);
                 mapData.putExtra("x",latLng.longitude);
                 startActivityForResult(mapData,MAPPOPUP);
+                float zoom = mMap.getCameraPosition().zoom;
+                Log.d("zoom", zoom+"");
+                zoomLevelCal();
             }
         });
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker m) {
+                int mark = 3;
               if(startMarker!=null){
-                if(startMarker.equals(m)) return true;
-                }else if(endMarker!=null) {
-                    if(endMarker.equals(m)) return true;
-                }else{
-                  Intent busStopData = new Intent(main,BusStopInfo.class);
-                  LatLng loc = m.getPosition();
-                  busStopData.putExtra("x",loc.longitude);
-                  busStopData.putExtra("y",loc.latitude);
-                  busStopData.putExtra("arsId",m.getTitle());
-                  Log.d("markerclick",m.getTitle());
-                  startActivityForResult(busStopData,BUSSTOPINFO);
+                if(startMarker.equals(m)) mark=1;
+                }
+                if(endMarker!=null) {
+                    if(endMarker.equals(m)) mark=2;
+                }
+
+                Log.d("marker", mark+"");
+                switch (mark){
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        Intent busStopData = new Intent(main,BusStopInfo.class);
+                        LatLng loc = m.getPosition();
+                        busStopData.putExtra("x",loc.longitude);
+                        busStopData.putExtra("y",loc.latitude);
+                        busStopData.putExtra("arsId",m.getTitle());
+                        Log.d("markerclick",m.getTitle());
+                        startActivityForResult(busStopData,BUSSTOPINFO);
+                        return true;
+                    default:
+                        break;
                 }
                 return false;
             }
@@ -172,7 +203,8 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                             JSONArray busStopData = new JSONArray(data.getStringExtra("busStopData"));
                             for(int i=0;i<busStopData.length();i++){
                                 JSONObject jo = busStopData.getJSONObject(i);
-                                mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))));
+                                if(markers[(rcount+1)%29]!=null) markers[(rcount+1)%29].remove();
+                                markers[markerCount()] = mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))).snippet(jo.getString("stationNm")));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -184,6 +216,12 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     try {
                         drawLine = new JSONArray(data.getStringExtra("lineData"));
                         drawLine(drawLine);
+                        startPoint[1] = ((maxX-minX)/2)+minX;
+                        startPoint[0] = ((maxY-minY)/2)+minY;
+
+                        LatLng start = new LatLng(startPoint[0], startPoint[1]);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,zoomLevelCal()));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -199,17 +237,48 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void drawLine(JSONArray lineList){
+        if(polyline!=null) polyline.remove();
+        maxX=0;
+        minX=1000;
+        maxY=0;
+        minY=1000;
         try {
-            PolylineOptions options = new PolylineOptions().color(Color.CYAN);
+            PolylineOptions options = new PolylineOptions().color(Color.DKGRAY);
             for(int i=0;i<lineList.length();i++){
                 JSONObject son = lineList.getJSONObject(i);
-                Log.d("root",son.getDouble("y")+"/"+son.getDouble("x"));
-                options.add(new LatLng(son.getDouble("y"),son.getDouble("x")));
+                double x = son.getDouble("x");
+                double y = son.getDouble("y");
+                Log.d("root",y+"/"+x);
+                options.add(new LatLng(y,x));
+                if(x>maxX) maxX = x;
+                if(x<minX) minX = x;
+                if(y>maxY) maxY = y;
+                if(y<minX) minY = y;
             }
-            Polyline polyline = mMap.addPolyline(options);
+            polyline = mMap.addPolyline(options);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public float zoomLevelCal(){
+        float out=12.5f;
+        if((maxX-minX)>(maxY-minY)){
+            Log.d("zoomlv",(maxX-minX)+"");
+            if((maxX-minX)<0.05) out = (float)(-15*((maxX-minX)*(maxX-minX))+14);
+            else if((maxX-minX)>0.5) out = (float)(-9*((maxX-minX)*(maxX-minX))+12);
+            else out = (float)(-9*((maxX-minX)*(maxX-minX))+11.5);
+        }else{
+            Log.d("zoomlv",(maxY-minY)+"");
+            out = (float)(-9*((maxY-minY)*(maxY-minY))+12);
+        }
+        return out;
+    }
+
+    private int markerCount(){
+        rcount++;
+        return rcount%29;
     }
 
     class MyLocationListener implements LocationListener {

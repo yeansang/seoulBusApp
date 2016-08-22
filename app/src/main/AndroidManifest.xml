@@ -45,7 +45,8 @@
             android:theme="@android:style/Theme.Holo.Dialog" />
         <activity
             android:name=".BusLinePop"
-            android:theme="@android:style/Theme.Holo.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Dialog" />
+        <activity android:name=".SelectPath"></activity>
     </application>
 
 </manifest>

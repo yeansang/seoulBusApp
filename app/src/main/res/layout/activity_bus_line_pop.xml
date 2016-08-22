@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="300dp"
-    android:layout_height="200dp" >
+    android:layout_height="140dp" >
 
     <TextView
         android:layout_width="wrap_content"
@@ -18,15 +18,7 @@
         android:layout_height="wrap_content"
         android:text="@string/buslineonmap"
         android:id="@+id/onmap"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/cancel"
-        android:id="@+id/cancel"
-        android:layout_below="@+id/onmap"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
     <TextView
@@ -36,6 +28,15 @@
         android:text="Bus Number"
         android:id="@+id/busnum"
         android:layout_below="@+id/busline"
-        android:layout_alignLeft="@+id/busline"
-        android:layout_alignStart="@+id/busline" />
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text"
+        android:id="@+id/businfo"
+        android:layout_below="@+id/busnum"
+        android:layout_centerHorizontal="true"
+        android:padding="10dp"/>
 </RelativeLayout>
