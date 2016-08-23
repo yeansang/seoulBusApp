@@ -1,5 +1,8 @@
 package com.example.nemus.seoulbusapp;
 
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+
 import java.util.ArrayList;
 
 /**
@@ -8,6 +11,14 @@ import java.util.ArrayList;
 public class PathInfoData {
     int distance;
     ArrayList<EachPath> paths = new ArrayList<EachPath>();
+    public String toString(){
+        String out = "";
+        out+=distance;
+        for(int i=0;i<paths.size();i++){
+            out+=", "+paths.get(i).busNum;
+        }
+        return out;
+    }
 }
 class EachPath{
     String busNum;

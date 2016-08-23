@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -21,6 +22,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -58,6 +61,10 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     JSONArray drawLine=null;
     Polyline polyline=null;
 
+    BitmapDescriptor busStopIcon;
+    BitmapDescriptor startPointIcon;
+    BitmapDescriptor endPointIcon;
+
     Marker[] markers = new Marker[30];
     int rcount=0;
 
@@ -67,6 +74,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("main", "Start");
         super.onCreate(savedInstanceState);
+
+        busStopIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+        startPointIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+        endPointIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+
         int permissionCheck = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] requstPermission = new String[]{"",""};
@@ -87,7 +99,6 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
 
     }
 
@@ -192,19 +203,27 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                         if(startMarker!=null){
                             startMarker.remove();
                         }
-                        startMarker = mMap.addMarker(new MarkerOptions().title("Start").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))));
+                        startMarker = mMap.addMarker(new MarkerOptions().title("Start").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))).icon(startPointIcon));
                     }else if(item == 1) {
                         if(endMarker!=null){
                             endMarker.remove();
                         }
-                        endMarker = mMap.addMarker(new MarkerOptions().title("End").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))));
+                        endMarker = mMap.addMarker(new MarkerOptions().title("End").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))).icon(endPointIcon));
                     }else if(item == 2){
+                        if(startMarker!=null){
+                            startMarker.remove();
+                            startMarker = null;
+                        }
+                        if(endMarker!=null){
+                            endMarker.remove();
+                            endMarker = null;
+                        }
                         try {
                             JSONArray busStopData = new JSONArray(data.getStringExtra("busStopData"));
                             for(int i=0;i<busStopData.length();i++){
                                 JSONObject jo = busStopData.getJSONObject(i);
                                 if(markers[(rcount+1)%29]!=null) markers[(rcount+1)%29].remove();
-                                markers[markerCount()] = mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))).snippet(jo.getString("stationNm")));
+                                markers[markerCount()] = mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))).snippet(jo.getString("stationNm")).icon(busStopIcon));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -213,6 +232,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     break;
                 case BUSSTOPINFO:
                 case BUSLINEPOP:
+
                     try {
                         drawLine = new JSONArray(data.getStringExtra("lineData"));
                         drawLine(drawLine);
@@ -226,12 +246,22 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                         e.printStackTrace();
                     }
                     break;
+                case PATHSEARCH:
                 default:
                     break;
             }
             if((startMarker!=null)&&(endMarker!=null)){
                 //경로 불러오기& 경로 그리기
-                JSONArray rootdata;
+                Intent busPath = new Intent(this,SelectPath.class);
+                LatLng s = startMarker.getPosition();
+                LatLng e = endMarker.getPosition();
+
+                busPath.putExtra("startx",s.longitude);
+                busPath.putExtra("starty",s.latitude);
+                busPath.putExtra("endx",e.longitude);
+                busPath.putExtra("endy",e.latitude);
+
+                startActivityForResult(busPath,PATHSEARCH);
             }
         }
     }

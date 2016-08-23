@@ -41,7 +41,7 @@ public class PathListAdapter extends ArrayAdapter<PathInfoData> {
             topText += " -> "+temp.paths.get(i).busNum;
         }
 
-        bottText += temp.paths.size()+"번 환승 , "+temp.distance+" M";
+        bottText += (temp.paths.size()-1)+"번 환승 , "+temp.distance+" 미터";
 
         top.setText(topText);
         bott.setText(bottText);

@@ -81,7 +81,8 @@ public class GetPathInfo extends AsyncTask<Void,Void,ArrayList<PathInfoData>> {
                                 temp = new PathInfoData();
                                 xpp.next();
                                 xpp.next();
-                                temp.distance = Integer.getInteger(xpp.getText());
+                                Log.d("xml",xpp.getText());
+                                temp.distance = Integer.parseInt(xpp.getText());
                             }
                             if (catName.equals("pathList")) {
                                 EachPath tempPath = new EachPath();
@@ -90,34 +91,43 @@ public class GetPathInfo extends AsyncTask<Void,Void,ArrayList<PathInfoData>> {
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.startBusStop = xpp.getText();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.startBusStopCoorX = Double.parseDouble(xpp.getText());
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.startBusStopCoorY = Double.parseDouble(xpp.getText());
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.busNum = xpp.getText();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.endBusStop = xpp.getText();
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.endBusStopCoorX = Double.parseDouble(xpp.getText());
                                 xpp.next();
                                 xpp.next();
                                 xpp.next();
+                                Log.d("xml",xpp.getText());
                                 tempPath.endBusStopCoorY = Double.parseDouble(xpp.getText());
                                 temp.paths.add(tempPath);
                             }
