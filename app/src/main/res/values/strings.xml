@@ -9,4 +9,5 @@
     <string name="cancel">취소</string>
     <string name="search_result">검색 결과</string>
     <string name="search_null">표시 할 결과가 없습니다</string>
+    <string name="transport_to">에 탑승</string>
 </resources>

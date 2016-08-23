@@ -70,8 +70,9 @@ public class SelectPath extends AppCompatActivity {
                     output.putExtra("pathEndY" + i, temp.paths.get(i).endBusStopCoorY);
                     output.putExtra("pathBusNm" + i, temp.paths.get(i).busNum);
                 }
+                output.putExtra("pathsize",temp.paths.size());
                 setResult(RESULT_OK,output);
-                main.finish();
+                SelectPath.this.finish();
             }
         });
     }

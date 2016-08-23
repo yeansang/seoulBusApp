@@ -20,6 +20,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -46,6 +47,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private LocationManager mLocationManager;
+    private PathInfoData path = new PathInfoData();
 
     private Marker marker;
     private Marker startMarker = null;
@@ -60,12 +62,15 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
 
     JSONArray drawLine=null;
     Polyline polyline=null;
+    Polyline pathLine = null;
 
-    BitmapDescriptor busStopIcon;
-    BitmapDescriptor startPointIcon;
-    BitmapDescriptor endPointIcon;
+    BitmapDescriptor busStopIcon=null;
+    BitmapDescriptor startPointIcon=null;
+    BitmapDescriptor endPointIcon=null;
+    BitmapDescriptor transportIcon=null;
 
     Marker[] markers = new Marker[30];
+    Marker[] transport = new Marker[10];
     int rcount=0;
 
     private double startPoint[] = new double[]{37.558345, 126.994583};
@@ -75,9 +80,12 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("main", "Start");
         super.onCreate(savedInstanceState);
 
-        busStopIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
-        startPointIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
-        endPointIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+        MapsInitializer.initialize(getApplicationContext());
+
+        busStopIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_directions_bus_black_48dp);
+        startPointIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_directions_walk_black_48dp);
+        endPointIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_add_location_black_48dp);
+        transportIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_transfer_within_a_station_black_48dp);
 
         int permissionCheck = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -153,12 +161,14 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker m) {
-                int mark = 3;
-              if(startMarker!=null){
-                if(startMarker.equals(m)) mark=1;
-                }
-                if(endMarker!=null) {
-                    if(endMarker.equals(m)) mark=2;
+                int mark = 0;
+                if(m.getTitle().equals("Start")) mark=1;
+                if(m.getTitle().equals("End")) mark=2;
+                try {
+                    if (Integer.parseInt(m.getTitle()) != 0) mark = 3;
+                }catch (NumberFormatException e){
+                    e.printStackTrace();
+                    mark=4;
                 }
 
                 Log.d("marker", mark+"");
@@ -168,14 +178,14 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     case 2:
                         break;
                     case 3:
-                        Intent busStopData = new Intent(main,BusStopInfo.class);
-                        LatLng loc = m.getPosition();
-                        busStopData.putExtra("x",loc.longitude);
-                        busStopData.putExtra("y",loc.latitude);
-                        busStopData.putExtra("arsId",m.getTitle());
-                        Log.d("markerclick",m.getTitle());
-                        startActivityForResult(busStopData,BUSSTOPINFO);
-                        return true;
+                            Intent busStopData = new Intent(main, BusStopInfo.class);
+                            LatLng loc = m.getPosition();
+                            busStopData.putExtra("x", loc.longitude);
+                            busStopData.putExtra("y", loc.latitude);
+                            busStopData.putExtra("arsId", m.getTitle());
+                            Log.d("markerclick", m.getTitle());
+                            startActivityForResult(busStopData, BUSSTOPINFO);
+                            return true;
                     default:
                         break;
                 }
@@ -204,20 +214,38 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                             startMarker.remove();
                         }
                         startMarker = mMap.addMarker(new MarkerOptions().title("Start").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))).icon(startPointIcon));
+                        if((startMarker!=null)&&(endMarker!=null)){
+                            //경로 불러오기& 경로 그리기
+                            Intent busPath = new Intent(this,SelectPath.class);
+                            LatLng s = startMarker.getPosition();
+                            LatLng e = endMarker.getPosition();
+
+                            busPath.putExtra("startx",s.longitude);
+                            busPath.putExtra("starty",s.latitude);
+                            busPath.putExtra("endx",e.longitude);
+                            busPath.putExtra("endy",e.latitude);
+
+                            startActivityForResult(busPath,PATHSEARCH);
+                        }
                     }else if(item == 1) {
                         if(endMarker!=null){
                             endMarker.remove();
                         }
                         endMarker = mMap.addMarker(new MarkerOptions().title("End").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))).icon(endPointIcon));
+                        if((startMarker!=null)&&(endMarker!=null)){
+                            //경로 불러오기& 경로 그리기
+                            Intent busPath = new Intent(this,SelectPath.class);
+                            LatLng s = startMarker.getPosition();
+                            LatLng e = endMarker.getPosition();
+
+                            busPath.putExtra("startx",s.longitude);
+                            busPath.putExtra("starty",s.latitude);
+                            busPath.putExtra("endx",e.longitude);
+                            busPath.putExtra("endy",e.latitude);
+
+                            startActivityForResult(busPath,PATHSEARCH);
+                        }
                     }else if(item == 2){
-                        if(startMarker!=null){
-                            startMarker.remove();
-                            startMarker = null;
-                        }
-                        if(endMarker!=null){
-                            endMarker.remove();
-                            endMarker = null;
-                        }
                         try {
                             JSONArray busStopData = new JSONArray(data.getStringExtra("busStopData"));
                             for(int i=0;i<busStopData.length();i++){
@@ -229,10 +257,10 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                             e.printStackTrace();
                         }
                     }
+
                     break;
                 case BUSSTOPINFO:
                 case BUSLINEPOP:
-
                     try {
                         drawLine = new JSONArray(data.getStringExtra("lineData"));
                         drawLine(drawLine);
@@ -246,22 +274,35 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                         e.printStackTrace();
                     }
                     break;
-                case PATHSEARCH:
+                case PATHSEARCH:{
+                    if(pathLine!=null) pathLine.remove();
+                    for(int i=0;i<10;i++){if(transport[i]!=null) transport[i].remove();}
+                    path.distance = data.getIntExtra("distance",0);
+                    int pathSize = data.getIntExtra("pathsize",0);
+                    PolylineOptions options = new PolylineOptions().color(Color.MAGENTA);
+                    options.add(startMarker.getPosition());
+                    for(int i=0;i<pathSize;i++) {
+                        EachPath temp = new EachPath();
+                        temp.startBusStop = data.getStringExtra("pathStartNm" + i);
+                        temp.startBusStopCoorX = data.getDoubleExtra("pathStartX" + i, 0);
+                        temp.startBusStopCoorY = data.getDoubleExtra("pathStartY" + i, 0);
+                        options.add(new LatLng(temp.startBusStopCoorY,temp.startBusStopCoorX));
+                        temp.endBusStop = data.getStringExtra("pathEndNm" + i);
+                        temp.endBusStopCoorX = data.getDoubleExtra("pathEndX" + i, 0);
+                        temp.endBusStopCoorY = data.getDoubleExtra("pathEndY" + i, 0);
+                        options.add(new LatLng(temp.endBusStopCoorY,temp.endBusStopCoorX));
+                        temp.busNum = data.getStringExtra("pathBusNm" + i);
+                        transport[i+1]=mMap.addMarker(new MarkerOptions().position(new LatLng(temp.startBusStopCoorY,temp.startBusStopCoorX)).title(temp.busNum+getString(R.string.transport_to)).icon(transportIcon));
+                        path.paths.add(temp);
+                    }
+                    transport[0] = mMap.addMarker(new MarkerOptions().position(new LatLng(data.getDoubleExtra("pathEndY" + (pathSize-1), 0),data.getDoubleExtra("pathEndX" + (pathSize-1), 0))).icon(transportIcon).title("하차"));
+                    options.add(endMarker.getPosition());
+                    pathLine = mMap.addPolyline(options);
+                    Log.d("path",path.toString());
+                    break;
+                }
                 default:
                     break;
-            }
-            if((startMarker!=null)&&(endMarker!=null)){
-                //경로 불러오기& 경로 그리기
-                Intent busPath = new Intent(this,SelectPath.class);
-                LatLng s = startMarker.getPosition();
-                LatLng e = endMarker.getPosition();
-
-                busPath.putExtra("startx",s.longitude);
-                busPath.putExtra("starty",s.latitude);
-                busPath.putExtra("endx",e.longitude);
-                busPath.putExtra("endy",e.latitude);
-
-                startActivityForResult(busPath,PATHSEARCH);
             }
         }
     }
@@ -273,7 +314,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         maxY=0;
         minY=1000;
         try {
-            PolylineOptions options = new PolylineOptions().color(Color.DKGRAY);
+            PolylineOptions options = new PolylineOptions().color(Color.GREEN);
             for(int i=0;i<lineList.length();i++){
                 JSONObject son = lineList.getJSONObject(i);
                 double x = son.getDouble("x");
@@ -283,7 +324,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                 if(x>maxX) maxX = x;
                 if(x<minX) minX = x;
                 if(y>maxY) maxY = y;
-                if(y<minX) minY = y;
+                if(y<minY) minY = y;
             }
             polyline = mMap.addPolyline(options);
 
