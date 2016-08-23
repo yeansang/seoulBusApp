@@ -38,8 +38,6 @@ public class BusStopInfo extends AppCompatActivity {
 
         final ArrayList<JSONObject> businfo = new ArrayList<JSONObject>();
 
-        final BusStopInfo main = this;
-
         GetBusInfo gi = new GetBusInfo();
 
         Log.d("bus info",firstInfo.getStringExtra("arsId"));
@@ -68,7 +66,7 @@ public class BusStopInfo extends AppCompatActivity {
         mBusInfo.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent callPop = new Intent(main,BusLinePop.class);
+                Intent callPop = new Intent(BusStopInfo.this,BusLinePop.class);
                 try {
                     callPop.putExtra("busId",businfo.get(i).getString("busRouteId"));
                     callPop.putExtra("busnum",businfo.get(i).getString("rtNm"));

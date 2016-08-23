@@ -33,30 +33,28 @@ public class MapPopup extends Activity {
         select.add(getString(R.string.start_point));
         select.add(getString(R.string.end_point));
         select.add(getString(R.string.near_busstop));
+        select.add(getString(R.string.data_delete));
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_expandable_list_item_1,select);
         mListView.setAdapter(adapter);
-        final MapPopup main = this;
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                intent.putExtra("ClickItem",i);
                 switch (i){
                     case 0:
                         Log.d("mappopup","popup 1");
-                        intent.putExtra("ClickItem",i);
                         setResult(RESULT_OK,intent);
-                        main.finish();
+                        MapPopup.this.finish();
                         break;
                     case 1:
                         Log.d("mappopup","popup 2");
-                        intent.putExtra("ClickItem",i);
                         setResult(RESULT_OK,intent);
-                        main.finish();
+                        MapPopup.this.finish();
                         break;
                     case 2:
                         Log.d("mappopup","popup 3");
-                        intent.putExtra("ClickItem",i);
                         setResult(RESULT_OK,intent);
                         GetBusInfo gi = new GetBusInfo();
                         gi.setData(GetBusInfo.DATA_NEARBUSSTOP,intent.getDoubleExtra("y",0),intent.getDoubleExtra("x",0),300,null);
@@ -70,11 +68,16 @@ public class MapPopup extends Activity {
                             e.printStackTrace();
                         }
                         intent.putExtra("busStopData",temp.toString());
-                        main.finish();
+                        setResult(RESULT_OK,intent);
+                        MapPopup.this.finish();
                         break;
+                    case 3:
+                        intent.putExtra("removeBusStop",true);
+                        setResult(RESULT_OK,intent);
+                        MapPopup.this.finish();
                     default:
                         Log.d("err","in MenuPopup");
-                        main.finish();
+                        MapPopup.this.finish();
                         break;
                 }
             }

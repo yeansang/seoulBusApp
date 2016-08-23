@@ -36,8 +36,6 @@ public class BusLinePop extends Activity {
         final GetBusInfo gi = new GetBusInfo();
         gi.setData(GetBusInfo.DATA_BUSLINE,0,0,0,busid);
 
-        final BusLinePop main = this;
-
         onMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -50,7 +48,7 @@ public class BusLinePop extends Activity {
                     e.printStackTrace();
                 }
                 setResult(RESULT_OK,recived);
-                main.finish();
+                BusLinePop.this.finish();
             }
         });
 

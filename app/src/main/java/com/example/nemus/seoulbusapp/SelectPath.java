@@ -29,7 +29,6 @@ public class SelectPath extends AppCompatActivity {
         setContentView(R.layout.activity_select_path);
 
         input = getIntent();
-        final SelectPath main = this;
 
         mListView = (ListView)findViewById(R.id.path_list);
         nullPage = (TextView)findViewById(R.id.search_null);

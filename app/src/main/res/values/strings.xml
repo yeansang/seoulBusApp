@@ -10,4 +10,5 @@
     <string name="search_result">검색 결과</string>
     <string name="search_null">표시 할 결과가 없습니다</string>
     <string name="transport_to">에 탑승</string>
+    <string name="data_delete">정류장 표시 지우기</string>
 </resources>

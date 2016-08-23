@@ -69,7 +69,9 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     BitmapDescriptor endPointIcon=null;
     BitmapDescriptor transportIcon=null;
 
-    Marker[] markers = new Marker[30];
+    int markerToggle = 0;
+    Marker[] markersA = new Marker[30];
+    Marker[] markersB = new Marker[30];
     Marker[] transport = new Marker[10];
     int rcount=0;
 
@@ -123,7 +125,6 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        final mainActivity main = this;
         // Add a marker in Sydney and move the camera
         final LatLng start = new LatLng(startPoint[0], startPoint[1]);
         //marker = mMap.addMarker(new MarkerOptions().position(start).draggable(true).title("test").snippet("test String"));
@@ -148,7 +149,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                Intent mapData = new Intent(main,MapPopup.class);
+                Intent mapData = new Intent(mainActivity.this,MapPopup.class);
                 mapData.putExtra("y",latLng.latitude);
                 mapData.putExtra("x",latLng.longitude);
                 startActivityForResult(mapData,MAPPOPUP);
@@ -178,7 +179,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     case 2:
                         break;
                     case 3:
-                            Intent busStopData = new Intent(main, BusStopInfo.class);
+                            Intent busStopData = new Intent(mainActivity.this, BusStopInfo.class);
                             LatLng loc = m.getPosition();
                             busStopData.putExtra("x", loc.longitude);
                             busStopData.putExtra("y", loc.latitude);
@@ -234,6 +235,10 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                         endMarker = mMap.addMarker(new MarkerOptions().title("End").position(new LatLng(data.getDoubleExtra("y",0),data.getDoubleExtra("x",0))).icon(endPointIcon));
                         if((startMarker!=null)&&(endMarker!=null)){
                             //경로 불러오기& 경로 그리기
+                            if(pathLine!=null) pathLine.remove();
+                            for(int i=0;i<10;i++){
+                                if(transport[i]!=null) transport[i].remove();
+                            }
                             Intent busPath = new Intent(this,SelectPath.class);
                             LatLng s = startMarker.getPosition();
                             LatLng e = endMarker.getPosition();
@@ -248,13 +253,31 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     }else if(item == 2){
                         try {
                             JSONArray busStopData = new JSONArray(data.getStringExtra("busStopData"));
-                            for(int i=0;i<busStopData.length();i++){
+                            Marker[] markers;
+                            if((markerToggle%2)==0) markers=markersA;
+                            else markers=markersB;
+                            markerToggle++;
+                            int i=0;
+                            for(;i<busStopData.length();i++){
                                 JSONObject jo = busStopData.getJSONObject(i);
-                                if(markers[(rcount+1)%29]!=null) markers[(rcount+1)%29].remove();
-                                markers[markerCount()] = mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))).snippet(jo.getString("stationNm")).icon(busStopIcon));
+                                if(markers[i]!=null) markers[i].remove();
+                                markers[i] = mMap.addMarker(new MarkerOptions().title(jo.getString("arsId")).position(new LatLng(jo.getDouble("gpsY"),jo.getDouble("gpsX"))).snippet(jo.getString("stationNm")).icon(busStopIcon));
+                            }
+                            for(;i<30;i++){
+                                if(markers[i]!=null) markers[i].remove();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
+                        }
+                    }else if(item == 3){
+                        if(data.getBooleanExtra("removeBusStop",false)){
+                            if(polyline!=null)polyline.remove();
+                            for(int i=0;i<30;i++){
+                                if(markersA[i]!=null) markersA[i].remove();
+                            }
+                            for(int i=0;i<30;i++){
+                                if(markersB[i]!=null) markersB[i].remove();
+                            }
                         }
                     }
 
@@ -264,33 +287,50 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     try {
                         drawLine = new JSONArray(data.getStringExtra("lineData"));
                         drawLine(drawLine);
-                        startPoint[1] = ((maxX-minX)/2)+minX;
-                        startPoint[0] = ((maxY-minY)/2)+minY;
-
-                        LatLng start = new LatLng(startPoint[0], startPoint[1]);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,zoomLevelCal()));
+                        centerOrder();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                     break;
-                case PATHSEARCH:{
+                case PATHSEARCH:
+                {
                     if(pathLine!=null) pathLine.remove();
                     for(int i=0;i<10;i++){if(transport[i]!=null) transport[i].remove();}
+
+                    maxX=0;
+                    minX=1000;
+                    maxY=0;
+                    minY=1000;
+
                     path.distance = data.getIntExtra("distance",0);
                     int pathSize = data.getIntExtra("pathsize",0);
+
                     PolylineOptions options = new PolylineOptions().color(Color.MAGENTA);
                     options.add(startMarker.getPosition());
+
                     for(int i=0;i<pathSize;i++) {
                         EachPath temp = new EachPath();
+                        double x;
+                        double y;
+
                         temp.startBusStop = data.getStringExtra("pathStartNm" + i);
-                        temp.startBusStopCoorX = data.getDoubleExtra("pathStartX" + i, 0);
-                        temp.startBusStopCoorY = data.getDoubleExtra("pathStartY" + i, 0);
+                        temp.startBusStopCoorX = x = data.getDoubleExtra("pathStartX" + i, 0);
+                        temp.startBusStopCoorY = y = data.getDoubleExtra("pathStartY" + i, 0);
                         options.add(new LatLng(temp.startBusStopCoorY,temp.startBusStopCoorX));
+                        if(x>maxX) maxX = x;
+                        if(x<minX) minX = x;
+                        if(y>maxY) maxY = y;
+                        if(y<minY) minY = y;
+
                         temp.endBusStop = data.getStringExtra("pathEndNm" + i);
-                        temp.endBusStopCoorX = data.getDoubleExtra("pathEndX" + i, 0);
-                        temp.endBusStopCoorY = data.getDoubleExtra("pathEndY" + i, 0);
+                        temp.endBusStopCoorX = x = data.getDoubleExtra("pathEndX" + i, 0);
+                        temp.endBusStopCoorY = y = data.getDoubleExtra("pathEndY" + i, 0);
                         options.add(new LatLng(temp.endBusStopCoorY,temp.endBusStopCoorX));
+                        if(x>maxX) maxX = x;
+                        if(x<minX) minX = x;
+                        if(y>maxY) maxY = y;
+                        if(y<minY) minY = y;
+
                         temp.busNum = data.getStringExtra("pathBusNm" + i);
                         transport[i+1]=mMap.addMarker(new MarkerOptions().position(new LatLng(temp.startBusStopCoorY,temp.startBusStopCoorX)).title(temp.busNum+getString(R.string.transport_to)).icon(transportIcon));
                         path.paths.add(temp);
@@ -299,6 +339,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                     options.add(endMarker.getPosition());
                     pathLine = mMap.addPolyline(options);
                     Log.d("path",path.toString());
+                    centerOrder();
                     break;
                 }
                 default:
@@ -350,6 +391,15 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     private int markerCount(){
         rcount++;
         return rcount%29;
+    }
+
+    private void centerOrder(){
+        startPoint[1] = ((maxX-minX)/2)+minX;
+        startPoint[0] = ((maxY-minY)/2)+minY;
+
+        LatLng start = new LatLng(startPoint[0], startPoint[1]);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,zoomLevelCal()));
     }
 
     class MyLocationListener implements LocationListener {
