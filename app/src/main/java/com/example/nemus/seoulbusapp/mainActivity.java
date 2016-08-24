@@ -1,18 +1,14 @@
 package com.example.nemus.seoulbusapp;
 
-import android.*;
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -34,9 +30,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-
-import java.util.concurrent.ExecutionException;
 
 public class mainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -49,11 +42,8 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationManager mLocationManager;
     private PathInfoData path = new PathInfoData();
 
-    private Marker marker;
     private Marker startMarker = null;
     private Marker endMarker= null;
-
-    private Intent intent;
 
     double maxX=0;
     double minX=1000;
@@ -102,8 +92,8 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
             }
             requestPermissions(requstPermission, 0);
         }
-        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,100000,0,new MyLocationListener());
+/*        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,100000,0,new MyLocationListener());*/
         setContentView(R.layout.activity_main);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -125,27 +115,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
+
         final LatLng start = new LatLng(startPoint[0], startPoint[1]);
-        //marker = mMap.addMarker(new MarkerOptions().position(start).draggable(true).title("test").snippet("test String"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,15.5f));
-        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-            @Override
-            public void onMarkerDragStart(Marker marker) {
-
-            }
-
-            @Override
-            public void onMarkerDrag(Marker marker) {
-
-            }
-
-            @Override
-            public void onMarkerDragEnd(Marker m) {
-                marker.setPosition(m.getPosition());
-            }
-        });
+        mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -194,17 +168,11 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        /*if(drawLine!=null){
-            Log.d("onMapReady",drawLine.toString());
-            drawLine(drawLine);
-        }*/
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        //marker.
 
         if(resultCode == RESULT_OK){
             switch (requestCode){
@@ -286,7 +254,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
                 case BUSLINEPOP:
                     try {
                         drawLine = new JSONArray(data.getStringExtra("lineData"));
-                        drawLine(drawLine);
+                        drawLine(drawLine, data.getStringExtra("busnum"));
                         centerOrder();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -348,7 +316,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void drawLine(JSONArray lineList){
+    public void drawLine(JSONArray lineList, String lineNum){
         if(polyline!=null) polyline.remove();
         maxX=0;
         minX=1000;
@@ -402,7 +370,7 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,zoomLevelCal()));
     }
 
-    class MyLocationListener implements LocationListener {
+    /*class MyLocationListener implements LocationListener {
 
         @Override
         public void onLocationChanged(Location location) {
@@ -423,5 +391,5 @@ public class mainActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
 
-    }
+    }*/
 }
