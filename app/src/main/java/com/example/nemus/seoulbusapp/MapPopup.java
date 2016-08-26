@@ -46,7 +46,7 @@ public class MapPopup extends Activity {
                     case 0:
                         Log.d("mappopup","popup 1");
                         setResult(RESULT_OK,intent);
-                        MapPopup.this.finish();
+                        finish();
                         break;
                     case 1:
                         Log.d("mappopup","popup 2");
